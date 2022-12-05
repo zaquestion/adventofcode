@@ -6,9 +6,9 @@ fn main() {
     let lines: Vec<String> = io::stdin().lines()
                                 .filter_map(Result::ok).collect();
     for line in lines {
-        let sections = line.split(",").collect::<Vec<&str>>();
-        let s1 = sections[0].split("-").collect::<Vec<&str>>();
-        let s2 = sections[1].split("-").collect::<Vec<&str>>();
+        let sections = line.split(",").collect::<Vec<_>>();
+        let s1 = sections[0].split("-").collect::<Vec<_>>();
+        let s2 = sections[1].split("-").collect::<Vec<_>>();
 
         let mut hs1 = HashSet::new();
         for i in  (s1[0].parse::<i32>().unwrap()..s1[1].parse::<i32>().unwrap() + 1) {
