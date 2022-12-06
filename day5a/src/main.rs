@@ -3,14 +3,9 @@ use std::io;
 fn main() {
     let lines: Vec<String> = io::stdin().lines()
                                 .filter_map(Result::ok).collect();
-    for line in lines.iter() {
-        println!("{:?}", line);
-    }
 
     let mut stacks: Vec<Vec<char>> = Vec::new();
     let (board, moves) = lines.split_at(9);
-
-
 
     for col in (0..=8) {
         let mut stack: Vec<char> = Vec::new();
@@ -19,11 +14,9 @@ fn main() {
             if board[h].chars().nth(col*4) == Some('[') {
                 stack.push(board[h].chars().nth((col*4)+1).unwrap_or_default());
             } else {
-                h = 8;
                 break;
             }
             if h == 0 {
-                h = 8;
                 break;
             }
             h  -= 1;
@@ -31,8 +24,6 @@ fn main() {
         stacks.push(stack);
 
     }
-
-
 
     for m  in moves.iter().skip(1) {
         let ms = m.split(' ').collect::<Vec<_>>();
