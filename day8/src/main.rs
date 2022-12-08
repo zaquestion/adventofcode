@@ -53,8 +53,6 @@ fn count_visible_trees(tree_heights: &Vec<Vec<u8>>) -> u32 {
 
 fn count_scenic(tree_heights: &Vec<Vec<u8>>) -> u32 {
     let mut max = 0;
-    // Check each tree to see if it's visible from the left or top.
-    // If it is, increment the count.
     for r in 0..tree_heights.len() {
         for j in 0..tree_heights[r].len() {
             let height = tree_heights[r][j];
