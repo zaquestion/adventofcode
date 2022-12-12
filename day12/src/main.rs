@@ -1,26 +1,16 @@
 use std::io;
-//use pathfinding::prelude::astar;
+use pathfinding::prelude::astar;
 use pathfinding::prelude::bfs;
 
 #[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 struct Pos(char, usize, usize);
 
-/*
 fn successors(lines: &Vec<String>, p: &Pos) -> Vec<(Pos, i32)> {
     let grid = lines.clone();
     let mut ss: Vec<(Pos, i32)> = Vec::new();
     let cur = p.0;
     let row = p.1;
     let col = p.2;
-    if cur == 'S' {
-        let r = grid[row].chars().nth(col+1).unwrap();
-        ss.push((Pos(r, row, col+1), r as i32 - 'a' as i32));
-
-        let d = grid[row + 1].chars().nth(col).unwrap();
-        ss.push((Pos(d, row+1, col), d as i32 - 'a' as i32));
-        println!("{:?} -- {:?}", p,  ss);
-        return ss;
-    }
 
     if col > 0 {
         let l = grid[row].chars().nth(col-1).unwrap();
@@ -72,7 +62,6 @@ fn successors(lines: &Vec<String>, p: &Pos) -> Vec<(Pos, i32)> {
 fn distance(a: &Pos, b: &Pos) -> u32 {
     (a.1.abs_diff(b.1) + a.2.abs_diff(b.2)) as u32
 }
-*/
 
 fn successors_bfs(lines: &Vec<String>, p: &Pos) -> Vec<Pos> {
     let grid = lines.clone();
@@ -80,17 +69,6 @@ fn successors_bfs(lines: &Vec<String>, p: &Pos) -> Vec<Pos> {
     let cur = p.0;
     let row = p.1;
     let col = p.2;
-    /*
-    if cur == 'S' {
-        let r = grid[row].chars().nth(col+1).unwrap();
-        ss.push(Pos(r, row, col+1));
-
-        let d = grid[row + 1].chars().nth(col).unwrap();
-        ss.push(Pos(d, row+1, col));
-        println!("{:?} -- {:?}", p,  ss);
-        return ss;
-    }
-    */
 
     if col > 0 {
         let l = grid[row].chars().nth(col-1).unwrap();
@@ -156,15 +134,11 @@ fn part1_and_2(lines: &Vec<String>) {
         }
     }
 
-/*
     let resulta = astar(&s, |p| successors(lines, p), |p| distance(p, &e).try_into().unwrap(),
                        |p| p.0 == e.0).unwrap();
 
 
-    println!("Start: {:?}", s);
-    println!("Path: {:?}", resulta);
-    println!("Steps: {:?}", resulta.0.len()-1);
-    */
+    println!("A Steps: {:?}", resulta.0.len()-1);
 
     let resultb = bfs(&s, |p| successors_bfs(lines, p),
                        |p| p.0 == e.0).unwrap();
