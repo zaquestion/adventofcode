@@ -18,6 +18,9 @@ fn successors(lines: &Vec<String>, p: &Pos) -> Vec<(Pos, i32)> {
         if l == 'E' {
             cost = 'z' as i32 - cur as i32;
         }
+        if cost < 1 {
+            cost = 1
+        }
         if l != 'S' && cost <= 1 {
             ss.push((Pos(l, row, col-1), cost));
         }
@@ -29,6 +32,9 @@ fn successors(lines: &Vec<String>, p: &Pos) -> Vec<(Pos, i32)> {
         if r == 'E' {
             cost = 'z' as i32 - cur as i32;
         }
+        if cost < 1 {
+            cost = 1
+        }
         if r != 'S' && cost <= 1 {
             ss.push((Pos(r, row, col+1), cost));
         }
@@ -38,6 +44,9 @@ fn successors(lines: &Vec<String>, p: &Pos) -> Vec<(Pos, i32)> {
         let mut cost = u as i32 - cur as i32;
         if u == 'E' {
             cost = 'z' as i32 - cur as i32;
+        }
+        if cost < 1 {
+            cost = 1
         }
         if u != 'S' && cost <= 1 {
             ss.push((Pos(u, row-1, col), cost));
@@ -49,12 +58,13 @@ fn successors(lines: &Vec<String>, p: &Pos) -> Vec<(Pos, i32)> {
         if d == 'E' {
             cost = 'z' as i32 - cur as i32;
         }
+        if cost < 1 {
+            cost = 1
+        }
         if d != 'S' && cost <= 1 {
             ss.push((Pos(d, row+1, col), cost));
         }
     }
-
-    println!("{:?} -- {:?}", p,  ss);
 
     ss
 }
@@ -149,10 +159,11 @@ fn part1_and_2(lines: &Vec<String>) {
         for (j, c) in l.chars().enumerate() {
             if c == 'a' {
                 s = Pos('a', i, j);
-                let resultb = bfs(&s, |p| successors_bfs(lines, p),
-                                   |p| p.0 == e.0).unwrap_or_default();
-                if resultb.len() > 0 && resultb.len()-1 < minmin  {
-                    minmin = resultb.len() - 1;
+                let resulta = astar(&s, |p| successors(lines, p), |p| distance(p, &e).try_into().unwrap(),
+                       |p| p.0 == e.0).unwrap_or_default();
+                //let resultb = bfs(&s, |p| successors_bfs(lines, p), |p| p.0 == e.0).unwrap_or_default();
+                if resulta.0.len() > 0 && resulta.0.len()-1 < minmin  {
+                    minmin = resulta.0.len() - 1;
                 }
             }
         }
