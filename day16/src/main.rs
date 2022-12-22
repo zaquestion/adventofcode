@@ -103,7 +103,6 @@ fn part1(lines: &Vec<String>) {
         );
     }
     let mins = 30;
-    let mut count = 0;
 
     let start = State::new(&valves);
     let mut biggest_fart: State = start.clone();
@@ -163,7 +162,6 @@ fn part1(lines: &Vec<String>) {
                 nextnext.push(new);
             }
         }
-        count += 1;
         next = nextnext;
         next.sort_by_key(|s| s.pressure_relieved);
         next.reverse();
@@ -211,7 +209,8 @@ fn part2(lines: &Vec<String>) {
     let start = State::new(&valves);
     let mut biggest_fart: State = start.clone();
     let mut next: Vec<State> = vec![start.clone()];
-    while !next.is_empty() {
+    for _ in 1..=mins {
+        println!("BIGGEST FART: {:?}, {}", biggest_fart, next.len());
         for s in next.iter_mut() {
             s.minutes += 1;
             s.pressure_relieved += s
@@ -219,64 +218,52 @@ fn part2(lines: &Vec<String>) {
                 .iter()
                 .map(|(k, open)| if *open { valves[k].flow_rate } else { 0 })
                 .sum::<usize>();
+            if s.pressure_relieved >= biggest_fart.pressure_relieved {
+                biggest_fart = s.clone();
+            }
         }
-        let mut nextnext: Vec<State> = Vec::new();
-        //let mut next_nextnext: Vec<State> = Vec::new(); // I deserve shame
-        for state in next.iter_mut() {
-            for i in 0..2 {
-                if state.minutes > mins {
-                    continue;
-                }
-                if state.pressure_relieved >= biggest_fart.pressure_relieved {
-                    biggest_fart = state.clone();
-                }
+        for i in 0..2 {
+            let mut nextnext: Vec<State> = Vec::new();
+            for state in next.iter_mut() {
                 if state.valve_states.iter().all(|(_, v)| *v) {
-                    state.path.push(Action::Wait(usize_to_actor(i)));
-                    if i == 1 {
-                        let new = state.clone();
-                        nextnext.push(new);
-                    }
+                    let mut new = state.clone();
+                    new.path.push(Action::Wait(usize_to_actor(i)));
+                    nextnext.push(new);
                     continue;
                 }
 
                 if !state.valve_states[state.room.get(&i).unwrap()] {
-                    *state
-                        .valve_states
+                    let mut new = state.clone();
+                    *new.valve_states
                         .get_mut(state.room.get(&i).unwrap())
                         .unwrap() = true;
-                    state.path.push(Action::Open(
+                    new.path.push(Action::Open(
                         usize_to_actor(i),
                         state.room.get(&i).unwrap().to_string(),
                     ));
-                    if i == 1 {
-                        let new = state.clone();
-                        nextnext.push(new);
-                    }
+                    nextnext.push(new);
                 }
 
                 for t in valves[state.room.get(&i).unwrap()].tunnels.iter() {
-                    *state.room.get_mut(&i).unwrap() = t.to_string();
-                    state
-                        .path
+                    let mut new = state.clone();
+                    *new.room.get_mut(&i).unwrap() = t.to_string();
+                    new.path
                         .push(Action::Move(usize_to_actor(i), t.to_string()));
-                    if i == 1 {
-                        let new = state.clone();
-                        nextnext.push(new);
-                    }
+                    nextnext.push(new);
                 }
             }
+            next = nextnext;
+            next.sort_by_key(|s| s.pressure_relieved);
+            next.reverse();
+            next.resize(min((2 as usize).pow(16), next.len()), State::new(&valves));
+            biggest_fart = next.first().unwrap().clone();
         }
-        next = nextnext;
-        next.sort_by_key(|s| s.pressure_relieved);
-        next.reverse();
-        next.resize(min((2 as usize).pow(14), next.len()), State::new(&valves));
-        /*
-        for n in next.iter() {
-            println!("DEBUG: {:?}", n);
-        }
-        */
-        println!("BIGGEST FART: {:?}, {}", biggest_fart, next.len());
     }
+    /*
+    for n in next.iter() {
+        println!("DEBUG: {:?}", n);
+    }
+    */
 
     println!("Part 2: {}", biggest_fart.pressure_relieved);
 }
@@ -287,4 +274,5 @@ fn main() {
 
     //part1(&lines);
     part2(&lines);
+    // WRONG: 2662
 }
