@@ -218,5 +218,5 @@ fn main() {
     let lines: Vec<String> = io::stdin().lines().filter_map(Result::ok).collect();
 
     println!("part1: {}", simulate(&lines, 10, false));
-    println!("part2: {}", simulate(&lines, (2 as usize).pow(16), true));
+    println!("part2: {}", simulate(&lines, usize::MAX, true));
 }
