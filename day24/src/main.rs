@@ -197,12 +197,14 @@ fn main() {
     let end = Point(board[0].len() as isize - 2, board.len() as isize - 1);
     println!("End: {},{}", board[0].len() - 2, board.len() - 1);
     //println!("part1: {}", walk(board.clone(), &start.clone(), &end.clone()).0);
+    // WRONG: 161
 
     let (there, board) = walk(board.clone(), start.clone(), &end);
     let (back, board) = walk(board.clone(), end.clone(), &start);
     let (thereagain, _) = walk(board.clone(), start.clone(), &end);
     println!("part2 segs: {} -> {} -> {}", there, back, thereagain);
     println!("part2: {}", there + back + thereagain);
+    // WRONG: 813
 }
 
 fn parse(lines: &Vec<String>) -> Vec<Vec<Cell>> {
