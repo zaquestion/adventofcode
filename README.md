@@ -1,2 +1,3 @@
-# adventofcode2022
-Advent of Code 2022
+# adventofcode
+
+Advent of Code Solutions (all rust atm)
