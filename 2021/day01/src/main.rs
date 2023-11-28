@@ -18,7 +18,7 @@ fn main() {
 
     let batch_increases = nums
         .windows(3)
-        .map(|v| v[0] + v[1] + v[2])
+        .map(|v| v.iter().sum())
         .tuple_windows::<(isize, isize)>()
         .fold(
             0,
