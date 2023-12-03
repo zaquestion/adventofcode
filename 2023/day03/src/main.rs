@@ -19,27 +19,7 @@ enum Cell {
 }
 
 fn part1(lines: &Vec<String>) -> String {
-    // $ cat input| tr -d '0123456789.\n' | grep -o . | sort -u | tr -d '\n' && echo
-    let symbols = "#m%m&*+-/=@$".to_string();
-    let board: Vec<Vec<Cell>> = lines
-        .iter()
-        .map(|line| {
-            line.chars()
-                .map(|c| match c {
-                    // c if c.is_numeric() => { if let Ok(d) = c.to_string().parse::<usize>() { Some(Cell::PartNumberPart(d)) } else { None } }
-                    // This here is the experimental if_let_guard. which we
-                    // didn't really actually need/use because we index into the line directly later..
-                    // kept because it was the learning undertaken in this challenge
-                    c if let Ok(v) = c.to_string().parse::<usize>() => Some(Cell::PartNumberPart(v)),
-                    c if symbols.chars().any(|s| s == c) => Some(Cell::Symbol(c)),
-                    '.' => Some(Cell::Empty),
-                    _ => None,
-                })
-                .map(|c| c.expect("must resolve"))
-                .collect::<Vec<_>>()
-        })
-        .collect::<Vec<_>>();
-
+    let board = parse(lines);
     let sum = (0..board.len())
         .cartesian_product(0..board[0].len())
         .filter(|(y, x)| matches!(board[*y][*x], Cell::Symbol(_)))
@@ -51,31 +31,7 @@ fn part1(lines: &Vec<String>) -> String {
 }
 
 fn part2(lines: &Vec<String>) -> String {
-    // $ cat input| tr -d '0123456789.\n' | grep -o . | sort -u | tr -d '\n' && echo
-    let symbols = "#m%m&*+-/=@$".to_string();
-    let board: Vec<Vec<Cell>> = lines
-        .iter()
-        .map(|line| {
-            line.chars()
-                .map(|c| match c {
-                    // c if c.is_numeric() => { if let Ok(d) = c.to_string().parse::<usize>() { Some(Cell::PartNumberPart(d)) } else { None } }
-                    // NOTE: to run without experiemental, uncomment the
-                    // above and comment the below "if let gaurd". Remove the
-                    // if_let_gaurd feature at the top of the file
-                    // 
-                    // This here is the experimental if_let_guard. which we
-                    // didn't really actually need/use because we index into the line directly later..
-                    // kept because it was the learning undertaken in this challenge
-                    c if let Ok(v) = c.to_string().parse::<usize>() => Some(Cell::PartNumberPart(v)),
-                    c if symbols.chars().any(|s| s == c) => Some(Cell::Symbol(c)),
-                    '.' => Some(Cell::Empty),
-                    _ => None,
-                })
-                .map(|c| c.expect("must resolve"))
-                .collect::<Vec<_>>()
-        })
-        .collect::<Vec<_>>();
-
+    let board = parse(lines);
     let sum = (0..board.len())
         .cartesian_product(0..board[0].len())
         .filter(|(y, x)| matches!(board[*y][*x], Cell::Symbol('*')))
@@ -139,6 +95,33 @@ fn adjacent_part_nums<'a>(
         .unique()
         .collect::<Vec<_>>()
     }
+}
+
+fn parse(lines: &Vec<String>) -> Vec<Vec<Cell>> {
+    // $ cat input| tr -d '0123456789.\n' | grep -o . | sort -u | tr -d '\n' && echo
+    let symbols = "#m%m&*+-/=@$".to_string();
+    lines
+        .iter()
+        .map(|line| {
+            line.chars()
+                .map(|c| match c {
+                    // c if c.is_numeric() => { if let Ok(d) = c.to_string().parse::<usize>() { Some(Cell::PartNumberPart(d)) } else { None } }
+                    // NOTE: to run without experiemental, uncomment the
+                    // above and comment the below "if let gaurd". Remove the
+                    // if_let_gaurd feature at the top of the file
+                    // 
+                    // This here is the experimental if_let_guard. which we
+                    // didn't really actually need/use because we index into the line directly later..
+                    // kept because it was the learning undertaken in this challenge
+                    c if let Ok(v) = c.to_string().parse::<usize>() => Some(Cell::PartNumberPart(v)),
+                    c if symbols.chars().any(|s| s == c) => Some(Cell::Symbol(c)),
+                    '.' => Some(Cell::Empty),
+                    _ => None,
+                })
+                .map(|c| c.expect("must resolve"))
+                .collect::<Vec<_>>()
+        })
+        .collect::<Vec<_>>()
 }
 
 #[cfg(test)]
