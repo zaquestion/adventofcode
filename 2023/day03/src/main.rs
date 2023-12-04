@@ -106,7 +106,7 @@ fn parse(lines: &Vec<String>) -> Vec<Vec<Cell>> {
             line.chars()
                 .map(|c| match c {
                     // c if c.is_numeric() => { if let Ok(d) = c.to_string().parse::<usize>() { Some(Cell::PartNumberPart(d)) } else { None } }
-                    // NOTE: to run without experiemental, uncomment the
+                    // NOTE: to run without experimental, uncomment the
                     // above and comment the below "if let gaurd". Remove the
                     // if_let_gaurd feature at the top of the file
                     // 
