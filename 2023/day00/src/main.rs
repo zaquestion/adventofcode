@@ -29,18 +29,19 @@ fn parse(lines: &Vec<String>) -> Vec<Vec<Cell>> {}
 #[cfg(test)]
 mod tests {
     use super::*;
-    const sample: Vec<String> = vec![];
+    fn sampledata() -> Vec<String> {
+        vec![]
+    }
 
     #[test]
     fn test_part1_sample() -> Result<(), String> {
-        assert_eq!("4361", part1(&sample));
+        assert_eq!("35", part1(&sampledata()));
         Ok(())
     }
 
     #[test]
     fn test_part2_sample() -> Result<(), String> {
-        let input: Vec<String> = vec![];
-        assert_eq!("467835", part2(&sample));
+        assert_eq!("46", part2(&sampledata()));
         Ok(())
     }
 }
