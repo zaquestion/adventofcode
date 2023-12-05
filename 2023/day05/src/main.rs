@@ -5,11 +5,11 @@ use std::io;
 fn main() {
     let lines: Vec<String> = io::stdin().lines().filter_map(Result::ok).collect();
     println!("part 1: {:?}", part1(&lines));
-    println!("part 2: {:?}", part2(&lines));
+    println!("part 2: {:?}", part2_fast(&lines));
 }
 
 fn part1(lines: &Vec<String>) -> String {
-    let (seeds, mappers) = parse(lines);
+    let (seeds, mappers, _) = parse(lines);
 
     let min_loc = seeds
         .iter()
@@ -20,8 +20,10 @@ fn part1(lines: &Vec<String>) -> String {
     format!("{}", min_loc)
 }
 
+// part2 actually ran fast enough with a couple mins that I just solved with this, but inspired by
+// @BlaiseRideout I wrote part2_fast which solves the problem instantly
 fn part2(lines: &Vec<String>) -> String {
-    let (seed_spec, mappers) = parse(lines);
+    let (seed_spec, source_mappers, _) = parse(lines);
 
     let seeds = seed_spec
         .iter()
@@ -33,15 +35,35 @@ fn part2(lines: &Vec<String>) -> String {
     let min_loc = seeds
         .iter()
         .progress()
-        .map(|s| mappers.iter().fold(*s, |acc, f| f(acc)))
+        .map(|s| source_mappers.iter().fold(*s, |acc, f| f(acc)))
         .min()
         .expect("must min");
 
     format!("{}", min_loc)
 }
 
-fn parse(lines: &Vec<String>) -> (Vec<usize>, Vec<impl Fn(usize) -> usize>) {
-    // fn parse(lines: &Vec<String>) -> (Vec<usize>, Vec<Box<dyn Fn(usize) -> usize>>) {
+fn part2_fast(lines: &Vec<String>) -> String {
+    let (seed_spec, _, dest_mappers) = parse(lines);
+    let min_loc = (0..usize::MAX)
+        .progress()
+        .find(|&loc| {
+            let seed = dest_mappers.iter().fold(loc, |acc, f| f(acc));
+            seed_spec
+                .iter()
+                .tuples()
+                .any(|(start, range)| (*start..*start + *range).contains(&seed))
+        })
+        .expect("meet part 2");
+    format!("{}", min_loc)
+}
+
+fn parse(
+    lines: &Vec<String>,
+) -> (
+    Vec<usize>,
+    Vec<impl Fn(usize) -> usize>,
+    Vec<impl Fn(usize) -> usize>,
+) {
     let mut iter = lines.split(|l| l.is_empty());
 
     let seeds = iter
@@ -55,7 +77,8 @@ fn parse(lines: &Vec<String>) -> (Vec<usize>, Vec<impl Fn(usize) -> usize>) {
         .map(|n| n.parse::<usize>().expect("must num"))
         .collect::<Vec<usize>>();
 
-    let mappers = iter
+    let source_mappers = iter
+        .clone()
         .map(|split| {
             let transforms = split
                 .iter()
@@ -74,7 +97,27 @@ fn parse(lines: &Vec<String>) -> (Vec<usize>, Vec<impl Fn(usize) -> usize>) {
         })
         .collect::<Vec<_>>();
 
-    (seeds, mappers)
+    let dest_mappers = iter
+        .map(|split| {
+            let transforms = split
+                .iter()
+                .skip(1)
+                .map(line_to_nums)
+                .map(|l| {
+                    move |v: usize| -> Option<usize> {
+                        match v {
+                            v if (l[0]..l[0] + l[2]).contains(&v) => Some(l[1] + (v - l[0])),
+                            _ => None,
+                        }
+                    }
+                })
+                .collect::<Vec<_>>();
+            move |v| transforms.iter().find_map(|f| f(v)).unwrap_or(v)
+        })
+        .rev()
+        .collect::<Vec<_>>();
+
+    (seeds, source_mappers, dest_mappers)
 }
 
 fn line_to_nums(l: &String) -> Vec<usize> {
@@ -133,6 +176,12 @@ mod tests {
     #[test]
     fn test_part2_sample() -> Result<(), String> {
         assert_eq!("46", part2(&sampledata()));
+        Ok(())
+    }
+
+    #[test]
+    fn test_part2_fast_sample() -> Result<(), String> {
+        assert_eq!("46", part2_fast(&sampledata()));
         Ok(())
     }
 }
