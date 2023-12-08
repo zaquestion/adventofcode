@@ -35,18 +35,6 @@ fn part1(lines: &Vec<String>) -> String {
     return format!("{}", step_count);
 }
 
-async fn step(dir: &char, node: &String, stepper: impl Fn(String) -> (String, String)) -> String {
-    let (l, r) = stepper(node.to_string());
-    let n = match dir {
-        'L' => Some(l),
-        'R' => Some(r),
-        _ => None,
-    }
-    .expect("must resolve")
-    .clone();
-    n
-}
-
 fn part2(lines: &Vec<String>) -> String {
     let (directions, stepper, nodes) = parse(&lines);
 
@@ -67,9 +55,17 @@ fn part2(lines: &Vec<String>) -> String {
                 .map(|n| {
                     let n_clone = n.clone();
                     let stepper_clone = Arc::clone(&arc_stepper);
-
                     // async stuffs for the lulz and practice. ghost steps all nodes "at the same time"
-                    task::spawn(async move { step(&dir, &n_clone, &*stepper_clone).await })
+                    task::spawn(async move {
+                        let (l, r) = stepper_clone(n_clone.to_string());
+                        match dir {
+                            'L' => Some(l),
+                            'R' => Some(r),
+                            _ => None,
+                        }
+                        .expect("must resolve")
+                        .clone()
+                    })
                 })
                 .collect_vec();
 
