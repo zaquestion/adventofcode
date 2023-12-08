@@ -71,12 +71,12 @@ fn part2(lines: &Vec<String>) -> String {
 
             *nodes = block_on(async { join_all(steps).await });
             if nodes.iter().any(|n| n.ends_with("Z")) {
-                Some((step_idx + 1, true, nodes.clone()))
+                Some((step_idx + 1, true))
             } else {
-                Some((step_idx + 1, false, nodes.clone()))
+                Some((step_idx + 1, false))
             }
         })
-        .filter_map(|(step_count, found, _)| if found { Some(step_count) } else { None })
+        .filter_map(|(step_count, found)| if found { Some(step_count) } else { None })
         .take(total_end_nodes)
         .fold(1, |acc, num| {
             let mut a = acc;
