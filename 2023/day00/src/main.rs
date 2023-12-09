@@ -35,13 +35,13 @@ mod tests {
 
     #[test]
     fn test_part1_sample() -> Result<(), String> {
-        assert_eq!("35", part1(&sampledata()));
+        assert_eq!("something", part1(&sampledata()));
         Ok(())
     }
 
     #[test]
     fn test_part2_sample() -> Result<(), String> {
-        assert_eq!("46", part2(&sampledata()));
+        assert_eq!("something", part2(&sampledata()));
         Ok(())
     }
 }
