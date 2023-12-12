@@ -15,33 +15,37 @@ enum Cell {
 fn part1(lines: &Vec<String>) -> String {
     let board = parse(lines);
 
-    format!("{}", "todo")
+    format!("{}", todo!())
 }
 
 fn part2(lines: &Vec<String>) -> String {
     let board = parse(lines);
 
-    format!("{}", "todo")
+    format!("{}", todo!())
 }
 
-fn parse(lines: &Vec<String>) -> Vec<Vec<Cell>> {}
+fn parse(lines: &Vec<String>) -> Vec<Vec<Cell>> {
+    todo!()
+}
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use rstest::rstest;
+
     fn sampledata() -> Vec<String> {
         vec![]
     }
 
-    #[test]
-    fn test_part1_sample() -> Result<(), String> {
-        assert_eq!("something", part1(&sampledata()));
-        Ok(())
+    #[rstest]
+    #[case(sampledata(), "unexpected")]
+    fn test_part1_sample(#[case] input: Vec<String>, #[case] expected: String) {
+        assert_eq!(expected, part1(&input));
     }
 
-    #[test]
-    fn test_part2_sample() -> Result<(), String> {
-        assert_eq!("something", part2(&sampledata()));
-        Ok(())
+    #[rstest]
+    #[case(sampledata(), "unexpected")]
+    fn test_part2_sample(#[case] input: Vec<String>, #[case] expected: String) {
+        assert_eq!(expected, part2(&input));
     }
 }
