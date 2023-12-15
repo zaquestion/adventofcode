@@ -25,8 +25,6 @@ fn part1(line: &String) -> String {
 fn part2(line: &String) -> String {
     let ops = parse(line);
 
-    // let mut boxes: Vec<Vec<(String, Operation)>> = vec![Vec::new(); 256];
-    // ops.iter().fold(mut vec![Vec::new() ; 256], |boxes, op| {
     let boxes = ops.iter().fold(vec![Vec::new(); 256], |mut boxes, op| {
         let h = hash(&op.0);
         match op.1 {
