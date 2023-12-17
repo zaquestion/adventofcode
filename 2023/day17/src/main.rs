@@ -62,14 +62,14 @@ fn part2(lines: &Vec<String>) -> String {
     let (path, heat_loss) = dijkstra(
         &State::new(Point(0, 0), 1),
         |p| p.successors(&board, 4, 10),
-        |p| p.pos == Point(rows as isize - 1, cols as isize - 1),
+        |p| p.pos == Point(rows as isize - 1, cols as isize - 1) && p.steps_in_dir >= 3,
     )
     .expect("must path");
 
     let (_, heat_loss2) = dijkstra(
         &State::new(Point(0, 0), 2),
         |p| p.successors(&board, 4, 10),
-        |p| p.pos == Point(rows as isize - 1, cols as isize - 1),
+        |p| p.pos == Point(rows as isize - 1, cols as isize - 1) && p.steps_in_dir >= 3,
     )
     .expect("must path");
 
