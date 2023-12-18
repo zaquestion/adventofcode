@@ -204,7 +204,6 @@ fn part2(lines: &Vec<String>) -> String {
     format!("{}", inner_nodes)
 }
 
-// dumb non-zero algorithm I don't really understand
 fn is_interior_point(loop_nodes: &Vec<Point>, point: &Point) -> bool {
     let mut winding_number = 0;
 
