@@ -1,0 +1,347 @@
+use itertools::Itertools;
+use rayon::prelude::*;
+use std::ops::Add;
+use std::{collections::HashSet, io};
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use rstest::rstest;
+
+    fn sampledata() -> Vec<String> {
+        vec![
+            "#.#####################".to_string(),
+            "#.......#########...###".to_string(),
+            "#######.#########.#.###".to_string(),
+            "###.....#.>.>.###.#.###".to_string(),
+            "###v#####.#v#.###.#.###".to_string(),
+            "###.>...#.#.#.....#...#".to_string(),
+            "###v###.#.#.#########.#".to_string(),
+            "###...#.#.#.......#...#".to_string(),
+            "#####.#.#.#######.#.###".to_string(),
+            "#.....#.#.#.......#...#".to_string(),
+            "#.#####.#.#.#########v#".to_string(),
+            "#.#...#...#...###...>.#".to_string(),
+            "#.#.#v#######v###.###v#".to_string(),
+            "#...#.>.#...>.>.#.###.#".to_string(),
+            "#####v#.#.###v#.#.###.#".to_string(),
+            "#.....#...#...#.#.#...#".to_string(),
+            "#.#########.###.#.#.###".to_string(),
+            "#...###...#...#...#.###".to_string(),
+            "###.###.#.###v#####v###".to_string(),
+            "#...#...#.#.>.>.#.>.###".to_string(),
+            "#.###.###.#.###.#.#v###".to_string(),
+            "#.....###...###...#...#".to_string(),
+            "#####################.#".to_string(),
+        ]
+    }
+
+    #[rstest]
+    #[case(sampledata(), "94")]
+    fn test_part1_sample(#[case] input: Vec<String>, #[case] expected: String) {
+        assert_eq!(expected, part1(&input));
+    }
+
+    #[rstest]
+    #[case(sampledata(), "154")]
+    fn test_part2_sample(#[case] input: Vec<String>, #[case] expected: String) {
+        assert_eq!(expected, part2(&input));
+    }
+}
+
+#[derive(Debug, PartialEq, Clone, Copy)]
+enum Cell {
+    Path,
+    Forest,
+    SlopeUp,
+    SlopeRight,
+    SlopeDown,
+    SlopeLeft,
+}
+
+#[derive(Debug, PartialEq, Eq, Clone, Hash)]
+struct Point(isize, isize);
+
+impl Add<&Point> for &Point {
+    type Output = Point;
+
+    fn add(self, other: &Point) -> Point {
+        Point {
+            0: self.0 + other.0,
+            1: self.1 + other.1,
+        }
+    }
+}
+
+fn parse(lines: &Vec<String>) -> (Vec<Vec<Cell>>, (Point, Point)) {
+    let b = lines
+        .iter()
+        .map(|line| {
+            line.chars()
+                .map(|c| {
+                    match c {
+                        '.' => Some(Cell::Path),
+                        '#' => Some(Cell::Forest),
+                        '^' => Some(Cell::SlopeUp),
+                        '>' => Some(Cell::SlopeRight),
+                        'v' => Some(Cell::SlopeDown),
+                        '<' => Some(Cell::SlopeLeft),
+                        _ => None,
+                    }
+                    .expect("must resolve")
+                })
+                .collect_vec()
+        })
+        .collect_vec();
+    let start_end = (
+        b.first()
+            .expect("must first")
+            .iter()
+            .enumerate()
+            .find_map(|(x, &c)| {
+                if Cell::Path == c {
+                    Some(Point(0, x as isize))
+                } else {
+                    None
+                }
+            })
+            .expect("must find"),
+        b.last()
+            .expect("must first")
+            .iter()
+            .enumerate()
+            .find_map(|(x, &c)| {
+                if Cell::Path == c {
+                    Some(Point(b.len() as isize - 1, x as isize))
+                } else {
+                    None
+                }
+            })
+            .expect("must find"),
+    );
+    (b, start_end)
+}
+
+fn part1(lines: &Vec<String>) -> String {
+    let (board, (start_p, end_p)) = parse(lines);
+
+    format!("{}", walk(board, start_p, end_p, false))
+}
+
+fn part2(lines: &Vec<String>) -> String {
+    let (board, (start_p, end_p)) = parse(lines);
+
+    format!("{}", walk(board, start_p, end_p, true))
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct State {
+    pos: Point,
+    walked: HashSet<Point>,
+}
+
+impl State {
+    fn new(p: Point) -> State {
+        State {
+            walked: HashSet::from([p.clone()]),
+            pos: p,
+        }
+    }
+}
+
+const DIRS: [Point; 4] = [Point(-1, 0), Point(0, 1), Point(1, 0), Point(0, -1)];
+fn can_path(board: &Vec<Vec<Cell>>, start_pos: Point, end_pos: Point) -> bool {
+    let start = State::new(start_pos.clone());
+    let mut last_best = start.clone();
+
+    let mut next: Vec<State> = vec![start.clone()];
+    let mut path_exists = false;
+
+    while !next.is_empty() {
+        let nextnext = next
+            .drain(0..)
+            .inspect(|s| {
+                // dbg!(&s);
+            })
+            .flat_map(|cur| {
+                DIRS.iter()
+                    .map(|d| &cur.pos + d)
+                    .collect_vec()
+                    .iter()
+                    .filter_map(|next| {
+                        if next.0 < 0
+                            || next.0 > board.len() as isize - 1
+                            || next.1 < 0
+                            || next.1 > board.first().expect("must first").len() as isize - 1
+                            || cur.walked.contains(&next)
+                            || board[next.0 as usize][next.1 as usize] == Cell::Forest
+                        {
+                            None
+                        } else {
+                            Some(next.clone())
+                        }
+                    })
+                    .inspect(|p| {
+                        // dbg!(p);
+                    })
+                    .filter_map(|p| {
+                        let mut newstate = cur.clone();
+                        newstate.walked.insert(p.clone());
+                        if p == end_pos {
+                            path_exists = true;
+                            None
+                        } else if !path_exists {
+                            match board[p.0 as usize][p.1 as usize] {
+                                Cell::Forest => panic!("oops"),
+                                _ => {
+                                    newstate.pos = p;
+                                    Some(newstate)
+                                }
+                            }
+                        } else {
+                            None
+                        }
+                    })
+                    .collect_vec()
+            })
+            .collect_vec();
+        next.extend(nextnext);
+        // next.sort_by(|a, b| {
+        //     if dist(&a.pos, &end_pos) > dist(&b.pos, &end_pos) {
+        //         std::cmp::Ordering::Greater
+        //     } else {
+        //         std::cmp::Ordering::Less
+        //     }
+        // });
+        next.dedup_by(|a, b| a.pos == b.pos || a.walked == b.walked);
+        next.retain(|s| {
+            let sdist = dist(&s.pos, &end_pos);
+            sdist < dist(&last_best.pos, &end_pos) + 14
+        });
+
+        next.resize(
+            std::cmp::min((2 as usize).pow(14), next.len()),
+            State::new(start_pos.clone()),
+        );
+
+        if next.len() > 0 {
+            last_best = next[0].clone();
+        }
+    }
+    path_exists
+}
+fn dist(s: &Point, b: &Point) -> isize {
+    (s.0.abs_diff(b.0) + s.1.abs_diff(b.1)) as isize
+}
+
+fn walk(board: Vec<Vec<Cell>>, start_pos: Point, end_pos: Point, part2: bool) -> usize {
+    let start = State::new(start_pos.clone());
+
+    let mut next: Vec<State> = vec![start.clone()];
+    let mut intersections: Vec<State> = vec![];
+    let mut longest: usize = 0;
+
+    while !next.is_empty() {
+        let nextnext: Vec<State> = next
+            .drain(0..)
+            .inspect(|s| {
+                // dbg!(&s);
+            })
+            .flat_map(|cur| {
+                if !part2 {
+                    match board[cur.pos.0 as usize][cur.pos.1 as usize] {
+                        Cell::SlopeUp => {
+                            vec![&cur.pos + &Point(-1, 0)]
+                        }
+                        Cell::SlopeRight => {
+                            vec![&cur.pos + &Point(0, 1)]
+                        }
+                        Cell::SlopeDown => {
+                            vec![&cur.pos + &Point(1, 0)]
+                        }
+                        Cell::SlopeLeft => {
+                            vec![&cur.pos + &Point(0, -1)]
+                        }
+                        Cell::Forest => panic!("oops"),
+                        _ => DIRS.iter().map(|d| &cur.pos + d).collect_vec(),
+                    }
+                } else {
+                    DIRS.iter().map(|d| &cur.pos + d).collect_vec()
+                }
+                .iter()
+                .filter_map(|next| {
+                    if next.0 < 0
+                        || next.0 > board.len() as isize - 1
+                        || next.1 < 0
+                        || next.1 > board.first().expect("must first").len() as isize - 1
+                        || cur.walked.contains(&next)
+                        || board[next.0 as usize][next.1 as usize] == Cell::Forest
+                    {
+                        None
+                    } else {
+                        Some(next.clone())
+                    }
+                })
+                .inspect(|p| {
+                    // dbg!(p);
+                })
+                .filter_map(|p| {
+                    let mut newstate = cur.clone();
+                    newstate.walked.insert(p.clone());
+                    if p == end_pos {
+                        if cur.walked.len() > longest {
+                            longest = cur.walked.len();
+                        }
+                        None
+                    } else {
+                        match board[p.0 as usize][p.1 as usize] {
+                            Cell::Forest => panic!("oops"),
+                            _ => {
+                                newstate.pos = p;
+                                Some(newstate)
+                            }
+                        }
+                    }
+                })
+                .collect_vec()
+            })
+            // .filter(|s| {
+            //     if s.walked.len() > 3000 {
+            //         can_path(&board, end_pos.clone(), s.pos.clone())
+            //     } else {
+            //         true
+            //     }
+            // })
+            .collect();
+        if part2 {
+            dbg!(longest);
+        }
+        next.extend(nextnext);
+        next.sort_unstable_by(|a, b| {
+            if dist(&a.pos, &end_pos) > dist(&b.pos, &end_pos) {
+                std::cmp::Ordering::Greater
+            } else {
+                std::cmp::Ordering::Less
+            }
+        });
+        next.dedup_by(|a, b| {
+            a.walked.is_subset(&b.walked)
+            // (b.walked.contains(&a.pos) && a.walked.is_subset(&b.walked))
+            // || (a.walked.contains(&b.pos) && b.walked.is_subset(&a.walked))
+        });
+        dbg!(next.len());
+        next.resize(
+            std::cmp::min((2 as usize).pow(13), next.len()),
+            State::new(start_pos.clone()),
+        );
+    }
+    longest
+}
+
+fn main() {
+    let lines: Vec<String> = io::stdin().lines().filter_map(Result::ok).collect();
+    println!("part 1: {:?}", part1(&lines));
+    // Wrong: 4942 (too low)
+    // Wrong: 5578 (too low)
+    println!("part 2: {:?}", part2(&lines));
+}
