@@ -43,7 +43,6 @@ fn parse(lines: &Vec<String>) -> Vec<Instruction> {
     mul_re
         .captures_iter(op_str.as_str())
         .map(|c| (c.get(1).expect("must op").as_str(), c))
-        // .map(|c| c.extract())
         .filter_map(|(t, c)| match t {
             "mul" => {
                 if let (Some(x), Some(y)) = (c.get(2), c.get(3)) {
