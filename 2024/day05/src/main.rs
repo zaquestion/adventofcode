@@ -59,7 +59,7 @@ fn parse(lines: &Vec<String>) -> (HashMap<usize, HashSet<usize>>, Vec<Vec<usize>
         .collect_tuple()
         .expect("must tuple");
     let mut rules: HashMap<usize, HashSet<usize>> = HashMap::new();
-    rule_str.iter().take_while(|l| *l != "").for_each(|l| {
+    rule_str.iter().for_each(|l| {
         let (l, r) = l
             .split("|")
             .map(|nums| nums.parse::<usize>().expect("must num"))
